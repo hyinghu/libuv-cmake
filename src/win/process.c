@@ -445,7 +445,7 @@ static WCHAR* search_path(const WCHAR *file,
  * Quotes command line arguments
  * Returns a pointer to the end (next char to be written) of the buffer
  */
-UV_EXTERN WCHAR* uv_win_quote_cmd_arg(const WCHAR *source, WCHAR *target) {
+WCHAR* quote_cmd_arg(const WCHAR *source, WCHAR *target) {
   size_t len = wcslen(source);
   size_t i;
   int quote_hit;
@@ -518,7 +518,7 @@ UV_EXTERN WCHAR* uv_win_quote_cmd_arg(const WCHAR *source, WCHAR *target) {
 }
 
 
-UV_EXTERN int uv_win_make_program_args(char** args, int verbatim_arguments, WCHAR** dst_ptr) {
+int make_program_args(char** args, int verbatim_arguments, WCHAR** dst_ptr) {
   char** arg;
   WCHAR* dst = NULL;
   WCHAR* temp_buffer = NULL;
@@ -590,7 +590,7 @@ UV_EXTERN int uv_win_make_program_args(char** args, int verbatim_arguments, WCHA
       pos += arg_len - 1;
     } else {
       /* Quote/escape, if needed. */
-      pos = uv_win_quote_cmd_arg(temp_buffer, pos);
+      pos = quote_cmd_arg(temp_buffer, pos);
     }
 
     *pos++ = *(arg + 1) ? L' ' : L'\0';
@@ -674,7 +674,7 @@ static int qsort_wcscmp(const void *a, const void *b) {
  * https://github.com/Alexpux/Cygwin/blob/b266b04fbbd3a595f02ea149e4306d3ab9b1fe3d/winsup/cygwin/environ.cc#L955
  *
  */
-UV_EXTERN int uv_win_make_program_env(char* env_block[], WCHAR** dst_ptr) {
+int make_program_env(char* env_block[], WCHAR** dst_ptr) {
   WCHAR* dst;
   WCHAR* ptr;
   char** env;
@@ -959,7 +959,7 @@ int uv_spawn(uv_loop_t* loop,
   if (err)
     goto done;
 
-  err = uv_win_make_program_args(
+  err = make_program_args(
       options->args,
       options->flags & UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS,
       &arguments);
@@ -967,7 +967,7 @@ int uv_spawn(uv_loop_t* loop,
     goto done;
 
   if (options->env) {
-     err = uv_win_make_program_env(options->env, &env);
+     err = make_program_env(options->env, &env);
      if (err)
        goto done;
   }
